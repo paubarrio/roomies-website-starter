@@ -5,19 +5,20 @@ import { addMinutes, startOfDay } from "date-fns";
 
 type Roommate = { id: string; name: string; color: string };
 const INITIAL_ROOMMATES: Roommate[] = [
+  { id: "pau", name: "Pau", color: "bg-orange-500" },
   { id: "yas", name: "Yasmeen", color: "bg-indigo-500" },
-  { id: "fra", name: "François", color: "bg-emerald-500" },
-  { id: "rag", name: "Raghda", color: "bg-rose-500" },
+  { id: "sam", name: "Samantha", color: "bg-emerald-500" },
+  { id: "isa", name: "Isabelle", color: "bg-rose-500" },
 ];
 
 const today = new Date();
 const base = startOfDay(today);
 const mockEvents = () => ([
-  { title: "Class – PSYCH 2B03", start: addMinutes(base, 9*60), end: addMinutes(base, 10*60+20), owner: "yas" },
-  { title: "Gym", start: addMinutes(base, 7*60), end: addMinutes(base, 7*60+45), owner: "fra" },
-  { title: "Work block", start: addMinutes(base, 9*60), end: addMinutes(base, 12*60), owner: "fra" },
-  { title: "Clinic shift", start: addMinutes(base, 13*60), end: addMinutes(base, 17*60), owner: "rag" },
-  { title: "Study Group", start: addMinutes(base, 18*60), end: addMinutes(base, 19*60+30), owner: "yas" },
+  { title: "Class – PSYCH 2B03", start: addMinutes(base, 9 * 60), end: addMinutes(base, 10 * 60 + 20), owner: "yas" },
+  { title: "Gym", start: addMinutes(base, 7 * 60), end: addMinutes(base, 7 * 60 + 45), owner: "pau" },
+  { title: "Work block", start: addMinutes(base, 9 * 60), end: addMinutes(base, 12 * 60), owner: "sam" },
+  { title: "Clinic shift", start: addMinutes(base, 13 * 60), end: addMinutes(base, 17 * 60), owner: "isa" },
+  { title: "Study Group", start: addMinutes(base, 18 * 60), end: addMinutes(base, 19 * 60 + 30), owner: "yas" },
 ]);
 
 type Event = ReturnType<typeof mockEvents>[number];
@@ -52,8 +53,14 @@ function Calendars({ roommates }: { roommates: Roommate[] }){
   const [visible, setVisible] = React.useState(Object.fromEntries(roommates.map(r=>[r.id,true])) as Record<string,boolean>);
   const [duration, setDuration] = React.useState(60);
   const [participants, setParticipants] = React.useState(Object.fromEntries(roommates.map(r=>[r.id,true])) as Record<string,boolean>);
-  const dayStart = React.useMemo(() => new Date(today.getFullYear(), today.getMonth(), today.getDate(), 8, 0), []);
-  const dayEnd = React.useMemo(() => new Date(today.getFullYear(), today.getMonth(), today.getDate(), 22, 0), []);
+  const dayStart = React.useMemo(
+    () => new Date(today.getFullYear(), today.getMonth(), today.getDate(), 8, 0),
+    [today]
+  );
+  const dayEnd = React.useMemo(
+    () => new Date(today.getFullYear(), today.getMonth(), today.getDate(), 22, 0),
+    [today]
+  );
   const filtered = React.useMemo(()=>events.filter(e=>visible[e.owner]), [events,visible]);
   const suggestions = React.useMemo(()=>{
     const selected = roommates.filter(r=>participants[r.id]).map(r=>r.id);
@@ -132,9 +139,38 @@ function Calendars({ roommates }: { roommates: Roommate[] }){
 
 function Chores({ roommates }: { roommates: Roommate[] }){
   const [chores, setChores] = React.useState([
-    { id:"c1", room:"Kitchen", task:"Dishes", recurrence:"Daily", assignedTo:"yas", nextDue: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 20, 0) },
-    { id:"c2", room:"Bathroom", task:"Clean sink & mirror", recurrence:"Weekly (Sat)", assignedTo:"rag", nextDue: new Date(today.getFullYear(), today.getMonth(), today.getDate()+2, 11, 0) },
-    { id:"c3", room:"Living Room", task:"Vacuum", recurrence:"Weekly (Sun)", assignedTo:"fra", nextDue: new Date(today.getFullYear(), today.getMonth(), today.getDate()+3, 15, 0) },
+    {
+      id: "c1",
+      room: "Kitchen",
+      task: "Dishes",
+      recurrence: "Daily",
+      assignedTo: "pau",
+      nextDue: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 20, 0),
+    },
+    {
+      id: "c2",
+      room: "Bathroom",
+      task: "Clean sink & mirror",
+      recurrence: "Weekly (Sat)",
+      assignedTo: "yas",
+      nextDue: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 2, 11, 0),
+    },
+    {
+      id: "c3",
+      room: "Living Room",
+      task: "Vacuum",
+      recurrence: "Weekly (Sun)",
+      assignedTo: "sam",
+      nextDue: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 3, 15, 0),
+    },
+    {
+      id: "c4",
+      room: "Garage",
+      task: "Take out recycling",
+      recurrence: "Weekly (Mon)",
+      assignedTo: "isa",
+      nextDue: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 4, 9, 0),
+    },
   ] as any[]);
   const [filterRoom, setFilterRoom] = React.useState("All");
   const rooms = React.useMemo(()=>["All", ...Array.from(new Set(chores.map(c=>c.room)))], [chores]);
@@ -212,8 +248,22 @@ function Chores({ roommates }: { roommates: Roommate[] }){
 
 function CostsGroceries({ roommates }: { roommates: Roommate[] }){
   const [expenses, setExpenses] = React.useState([
-    { id:"e1", date: new Date(), payer:"fra", description:"Paper towels", amount: 8.99, split:["yas","rag","fra"] },
-    { id:"e2", date: new Date(), payer:"yas", description:"Dish soap", amount: 5.49, split:["yas","rag","fra"] },
+    {
+      id: "e1",
+      date: new Date(),
+      payer: "pau",
+      description: "Paper towels",
+      amount: 8.99,
+      split: ["pau", "yas", "sam", "isa"],
+    },
+    {
+      id: "e2",
+      date: new Date(),
+      payer: "yas",
+      description: "Dish soap",
+      amount: 5.49,
+      split: ["pau", "yas", "sam", "isa"],
+    },
   ] as any[]);
   const [groceries, setGroceries] = React.useState([
     { id:"g1", name:"Milk 2L", lastPrice: 4.69, need:true },
