@@ -5,10 +5,10 @@ import { addMinutes, startOfDay } from "date-fns";
 
 type Roommate = { id: string; name: string; color: string };
 const INITIAL_ROOMMATES: Roommate[] = [
-  { id: "pau", name: "Pau", color: "bg-orange-500" },
-  { id: "yas", name: "Yasmeen", color: "bg-indigo-500" },
-  { id: "sam", name: "Samantha", color: "bg-emerald-500" },
-  { id: "isa", name: "Isabelle", color: "bg-rose-500" },
+  { id: "pau", name: "Pau", color: "#f97316" },
+  { id: "yas", name: "Yasmeen", color: "#6366f1" },
+  { id: "sam", name: "Samantha", color: "#10b981" },
+  { id: "isa", name: "Isabelle", color: "#ef4444" },
 ];
 
 const today = new Date();
@@ -99,7 +99,10 @@ function Calendars({ roommates }: { roommates: Roommate[] }){
             const owner = roommates.find(r=>r.id===ev.owner);
             return (
               <div key={idx} className="absolute left-20 right-4" style={{ top, height }}>
-                <div className={`h-full rounded-[calc(var(--radius)-6px)] shadow text-white text-xs p-2 ${owner?.color || 'bg-zinc-500'}`}>
+                <div
+                  className="h-full rounded-[calc(var(--radius)-6px)] shadow text-white text-xs p-2"
+                  style={{ background: owner?.color || '#71717a' }}
+                >
                   <div className="font-semibold text-sm">{ev.title}</div>
                   <div>{ev.start.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} – {ev.end.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
                   <div className="opacity-80 mt-1">{owner?.name}</div>
@@ -201,18 +204,23 @@ function Chores({ roommates }: { roommates: Roommate[] }){
           </div>
         </div>
         <div className="divide-y divide-zinc-200 dark:divide-zinc-800">
-          {filtered.map(c => (
-            <div key={c.id} className="py-3 flex items-center justify-between">
-              <div>
-                <div className="font-medium">{c.task} <span className="text-xs text-zinc-500">• {c.room}</span></div>
-                <div className="text-xs text-zinc-500">{c.recurrence} • Next due {new Date(c.nextDue).toLocaleString()}</div>
+          {filtered.map(c => {
+            const assignee = roommates.find(r=>r.id===c.assignedTo);
+            return (
+              <div key={c.id} className="py-3 flex items-center justify-between">
+                <div>
+                  <div className="font-medium">{c.task} <span className="text-xs text-zinc-500">• {c.room}</span></div>
+                  <div className="text-xs text-zinc-500">{c.recurrence} • Next due {new Date(c.nextDue).toLocaleString()}</div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Chip className="text-white" style={{ background: assignee?.color, borderColor: assignee?.color }}>
+                    {assignee?.name || c.assignedTo}
+                  </Chip>
+                  <AccentButton onClick={()=>markDone(c.id)}>Done</AccentButton>
+                </div>
               </div>
-              <div className="flex items-center gap-3">
-                <Chip>{roommates.find(r=>r.id===c.assignedTo)?.name || c.assignedTo}</Chip>
-                <AccentButton onClick={()=>markDone(c.id)}>Done</AccentButton>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </Card>
       <Card>
@@ -339,7 +347,7 @@ function CostsGroceries({ roommates }: { roommates: Roommate[] }){
                 const isPos = val>=0;
                 return (
                   <div key={r.id} className="flex items-center justify-between p-2 rounded-[calc(var(--radius)-6px)] border border-zinc-200 dark:border-zinc-800">
-                    <div className="font-medium">{r.name}</div>
+                    <Chip className="text-white" style={{ background: r.color, borderColor: r.color }}>{r.name}</Chip>
                     <div className={isPos? 'text-emerald-600' : 'text-rose-600'}>{isPos? '+$' : '-$'}{Math.abs(val).toFixed(2)}</div>
                   </div>
                 );
@@ -392,7 +400,8 @@ function Profiles({ roommates, setRoommates }:{ roommates: Roommate[]; setRoomma
               onChange={e=>update(r.id,{ name:e.target.value })}
             />
             <input
-              className="input w-32"
+              type="color"
+              className="w-10 h-10 rounded"
               value={r.color}
               onChange={e=>update(r.id,{ color:e.target.value })}
             />
