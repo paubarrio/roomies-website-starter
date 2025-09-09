@@ -4,7 +4,7 @@ import { Card, Chip, Tabs, Toggle, AccentButton, DesignProvider, DesignPanel } f
 import { addMinutes, startOfDay } from "date-fns";
 
 type Roommate = { id: string; name: string; color: string };
-const ROOMMATES: Roommate[] = [
+const INITIAL_ROOMMATES: Roommate[] = [
   { id: "yas", name: "Yasmeen", color: "bg-indigo-500" },
   { id: "fra", name: "François", color: "bg-emerald-500" },
   { id: "rag", name: "Raghda", color: "bg-rose-500" },
@@ -47,26 +47,26 @@ function suggestCommonTimes({ events, people, windowStart, windowEnd, durationMi
   return suggestions.slice(0,10);
 }
 
-function Calendars(){
+function Calendars({ roommates }: { roommates: Roommate[] }){
   const [events] = React.useState<Event[]>(mockEvents());
-  const [visible, setVisible] = React.useState(Object.fromEntries(ROOMMATES.map(r=>[r.id,true])) as Record<string,boolean>);
+  const [visible, setVisible] = React.useState(Object.fromEntries(roommates.map(r=>[r.id,true])) as Record<string,boolean>);
   const [duration, setDuration] = React.useState(60);
-  const [participants, setParticipants] = React.useState(Object.fromEntries(ROOMMATES.map(r=>[r.id,true])) as Record<string,boolean>);
+  const [participants, setParticipants] = React.useState(Object.fromEntries(roommates.map(r=>[r.id,true])) as Record<string,boolean>);
   const dayStart = React.useMemo(() => new Date(today.getFullYear(), today.getMonth(), today.getDate(), 8, 0), []);
   const dayEnd = React.useMemo(() => new Date(today.getFullYear(), today.getMonth(), today.getDate(), 22, 0), []);
   const filtered = React.useMemo(()=>events.filter(e=>visible[e.owner]), [events,visible]);
   const suggestions = React.useMemo(()=>{
-    const selected = ROOMMATES.filter(r=>participants[r.id]).map(r=>r.id);
+    const selected = roommates.filter(r=>participants[r.id]).map(r=>r.id);
     if(selected.length<2) return [];
     return suggestCommonTimes({ events: filtered, people: selected, windowStart: dayStart, windowEnd: dayEnd, durationMin: Number(duration) });
-  }, [filtered, participants, duration, dayStart, dayEnd]);
+  }, [filtered, participants, duration, dayStart, dayEnd, roommates]);
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-5 gap-4">
       <Card className="xl:col-span-3">
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-semibold">Today • {today.toLocaleDateString()}</h3>
-          <div className="flex gap-3">{ROOMMATES.map(r=>(
+          <div className="flex gap-3">{roommates.map(r=>(
             <Toggle key={r.id} label={r.name} checked={visible[r.id]} onChange={(v)=>setVisible(s=>({ ...s, [r.id]: v }))} />
           ))}</div>
         </div>
@@ -89,7 +89,7 @@ function Calendars(){
             const duration=(end - start)/60000;
             const top=(startMin/total)*15*48;
             const height=(duration/total)*15*48;
-            const owner = ROOMMATES.find(r=>r.id===ev.owner);
+            const owner = roommates.find(r=>r.id===ev.owner);
             return (
               <div key={idx} className="absolute left-20 right-4" style={{ top, height }}>
                 <div className={`h-full rounded-[calc(var(--radius)-6px)] shadow text-white text-xs p-2 ${owner?.color || 'bg-zinc-500'}`}>
@@ -104,7 +104,7 @@ function Calendars(){
       </Card>
       <Card className="xl:col-span-2">
         <h3 className="font-semibold mb-3">Suggest a time</h3>
-        <div className="flex flex-wrap gap-3 mb-3">{ROOMMATES.map(r=>(
+        <div className="flex flex-wrap gap-3 mb-3">{roommates.map(r=>(
           <Toggle key={r.id} label={r.name} checked={participants[r.id]} onChange={(v)=>setParticipants(s=>({ ...s, [r.id]: v }))} />
         ))}</div>
         <div className="flex items-center gap-3 mb-3">
@@ -130,7 +130,7 @@ function Calendars(){
   );
 }
 
-function Chores(){
+function Chores({ roommates }: { roommates: Roommate[] }){
   const [chores, setChores] = React.useState([
     { id:"c1", room:"Kitchen", task:"Dishes", recurrence:"Daily", assignedTo:"yas", nextDue: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 20, 0) },
     { id:"c2", room:"Bathroom", task:"Clean sink & mirror", recurrence:"Weekly (Sat)", assignedTo:"rag", nextDue: new Date(today.getFullYear(), today.getMonth(), today.getDate()+2, 11, 0) },
@@ -146,7 +146,7 @@ function Chores(){
     const room = (form.get("room")?.toString() || "General");
     const task = (form.get("task")?.toString() || "");
     const recurrence = (form.get("rec")?.toString() || "Weekly");
-    const assignedTo = (form.get("who")?.toString() || ROOMMATES[0].id);
+    const assignedTo = (form.get("who")?.toString() || roommates[0]?.id || "");
     if(!task) return;
     setChores(cs => cs.concat({ id: crypto.randomUUID(), room, task, recurrence, assignedTo, nextDue: new Date() }));
     e.currentTarget.reset();
@@ -172,7 +172,7 @@ function Chores(){
                 <div className="text-xs text-zinc-500">{c.recurrence} • Next due {new Date(c.nextDue).toLocaleString()}</div>
               </div>
               <div className="flex items-center gap-3">
-                <Chip>{ROOMMATES.find(r=>r.id===c.assignedTo)?.name || c.assignedTo}</Chip>
+                <Chip>{roommates.find(r=>r.id===c.assignedTo)?.name || c.assignedTo}</Chip>
                 <AccentButton onClick={()=>markDone(c.id)}>Done</AccentButton>
               </div>
             </div>
@@ -199,7 +199,7 @@ function Chores(){
           <div>
             <label className="label">Assign to</label>
             <select name="who" className="input mt-1">
-              {ROOMMATES.map(r=> <option key={r.id} value={r.id}>{r.name}</option>)}
+              {roommates.map(r=> <option key={r.id} value={r.id}>{r.name}</option>)}
             </select>
           </div>
           <AccentButton className="w-full">Add chore</AccentButton>
@@ -210,7 +210,7 @@ function Chores(){
   );
 }
 
-function CostsGroceries(){
+function CostsGroceries({ roommates }: { roommates: Roommate[] }){
   const [expenses, setExpenses] = React.useState([
     { id:"e1", date: new Date(), payer:"fra", description:"Paper towels", amount: 8.99, split:["yas","rag","fra"] },
     { id:"e2", date: new Date(), payer:"yas", description:"Dish soap", amount: 5.49, split:["yas","rag","fra"] },
@@ -222,22 +222,22 @@ function CostsGroceries(){
   ] as any[]);
 
   const balances = React.useMemo(()=>{
-    const map = new Map<string, number>(ROOMMATES.map(r=>[r.id,0]));
+    const map = new Map<string, number>(roommates.map(r=>[r.id,0]));
     for(const e of expenses){
       const share = e.amount / e.split.length;
       for(const p of e.split){ map.set(p, (map.get(p) || 0) - share); }
       map.set(e.payer, (map.get(e.payer) || 0) + e.amount);
     }
     return map;
-  }, [expenses]);
+  }, [expenses, roommates]);
 
   function addExpense(e: React.FormEvent<HTMLFormElement>){
     e.preventDefault();
     const form = new FormData(e.currentTarget);
     const description = form.get("desc")?.toString() || "";
     const amount = parseFloat(form.get("amt")?.toString() || "0");
-    const payer = form.get("payer")?.toString() || ROOMMATES[0].id;
-    const split = ROOMMATES.map(r => form.get(`split_${r.id}`) ? r.id : null).filter(Boolean) as string[];
+    const payer = form.get("payer")?.toString() || roommates[0]?.id || "";
+    const split = roommates.map(r => form.get(`split_${r.id}`) ? r.id : null).filter(Boolean) as string[];
     if(!description || !amount || split.length===0) return;
     setExpenses(es => es.concat({ id: crypto.randomUUID(), date: new Date(), payer, description, amount, split }));
     setGroceries(gs => gs.map(g => g.name.toLowerCase().includes(description.toLowerCase()) ? { ...g, lastPrice: amount } : g));
@@ -267,12 +267,12 @@ function CostsGroceries(){
               <div className="flex items-center gap-2">
                 <span className="text-sm">Payer:</span>
                 <select name="payer" className="px-2 py-1 rounded-lg border border-zinc-300 dark:border-zinc-700">
-                  {ROOMMATES.map(r=> <option key={r.id} value={r.id}>{r.name}</option>)}
+                  {roommates.map(r=> <option key={r.id} value={r.id}>{r.name}</option>)}
                 </select>
               </div>
               <div className="text-sm">Split with:</div>
               <div className="flex flex-wrap gap-3">
-                {ROOMMATES.map(r=> (
+                {roommates.map(r=> (
                   <label key={r.id} className="flex items-center gap-2 text-sm">
                     <input type="checkbox" name={`split_${r.id}`} defaultChecked /> {r.name}
                   </label>
@@ -284,7 +284,7 @@ function CostsGroceries(){
           <div>
             <div className="text-sm font-medium mb-2">Balances</div>
             <div className="space-y-2">
-              {ROOMMATES.map(r=>{
+              {roommates.map(r=>{
                 const val = balances.get(r.id) || 0;
                 const isPos = val>=0;
                 return (
@@ -327,8 +327,35 @@ function CostsGroceries(){
   );
 }
 
+function Profiles({ roommates, setRoommates }:{ roommates: Roommate[]; setRoommates: React.Dispatch<React.SetStateAction<Roommate[]>> }){
+  const update = (id: string, data: Partial<Roommate>) =>
+    setRoommates(rs => rs.map(r => r.id===id ? { ...r, ...data } : r));
+  return (
+    <Card>
+      <h3 className="font-semibold mb-3">Roommate profiles</h3>
+      <div className="space-y-2">
+        {roommates.map(r => (
+          <div key={r.id} className="flex items-center gap-2">
+            <input
+              className="input flex-1"
+              value={r.name}
+              onChange={e=>update(r.id,{ name:e.target.value })}
+            />
+            <input
+              className="input w-32"
+              value={r.color}
+              onChange={e=>update(r.id,{ color:e.target.value })}
+            />
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
 export default function HomePage(){
-  const [tab, setTab] = React.useState<"Calendars"|"Chores"|"Costs & Groceries">("Calendars");
+  const [roommates, setRoommates] = React.useState<Roommate[]>(INITIAL_ROOMMATES);
+  const [tab, setTab] = React.useState<"Calendars"|"Chores"|"Costs & Groceries"|"Profiles">("Calendars");
   return (
     <DesignProvider>
       <div className="container py-6">
@@ -342,10 +369,11 @@ export default function HomePage(){
             <Chip>Theme‑able</Chip>
           </div>
         </header>
-        <Tabs tabs={["Calendars","Chores","Costs & Groceries"]} current={tab} onChange={(t)=>setTab(t as any)} />
-        {tab==="Calendars" && <Calendars/>}
-        {tab==="Chores" && <Chores/>}
-        {tab==="Costs & Groceries" && <CostsGroceries/>}
+        <Tabs tabs={["Calendars","Chores","Costs & Groceries","Profiles"]} current={tab} onChange={(t)=>setTab(t as any)} />
+        {tab==="Calendars" && <Calendars roommates={roommates}/>}
+        {tab==="Chores" && <Chores roommates={roommates}/>}
+        {tab==="Costs & Groceries" && <CostsGroceries roommates={roommates}/>}
+        {tab==="Profiles" && <Profiles roommates={roommates} setRoommates={setRoommates}/>}
         <footer className="mt-10 text-xs text-zinc-500">
           Next: connect Google/Microsoft calendars via OAuth, add proposals & notifications, persist data.
         </footer>
