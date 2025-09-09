@@ -410,13 +410,32 @@ function Profiles({ roommates, setRoommates }:{ roommates: Roommate[]; setRoomma
           </div>
         ))}
       </div>
-      <AccentButton className="mt-4" onClick={() => setRoommates(draft)}>Save</AccentButton>
+      <AccentButton
+        className="mt-4"
+        onClick={() => {
+          setRoommates(draft);
+          if (typeof window !== "undefined") {
+            localStorage.setItem("roommates", JSON.stringify(draft));
+          }
+        }}
+      >
+        Save
+      </AccentButton>
     </Card>
   );
 }
 
 export default function HomePage(){
   const [roommates, setRoommates] = React.useState<Roommate[]>(INITIAL_ROOMMATES);
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+    const stored = localStorage.getItem("roommates");
+    if (stored) {
+      try {
+        setRoommates(JSON.parse(stored));
+      } catch {}
+    }
+  }, []);
   const [tab, setTab] = React.useState<"Calendars"|"Chores"|"Costs & Groceries"|"Profiles">("Calendars");
   return (
     <DesignProvider>
