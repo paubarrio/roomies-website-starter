@@ -3,15 +3,23 @@
 @tailwind utilities;
 
 :root{
-  --radius: 16px;
-  --accent: #0a0a0a;
+  --radius: 12px;
+  --accent: #e0865f;
   --on-accent: #ffffff;
 }
 
 html, body, :root { height: 100%; }
-body { @apply bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-50; }
+body {
+  background-color: #f6eade;
+  color: #5c4a43;
+  @apply dark:bg-zinc-950 dark:text-zinc-50;
+}
 .container { @apply max-w-7xl mx-auto px-6; }
-.card { @apply rounded-[var(--radius)] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm; }
+.card {
+  @apply rounded-[var(--radius)] border dark:bg-zinc-900 dark:border-zinc-800 shadow-sm;
+  background-color: #fff7f2;
+  border-color: #e9dcd3;
+}
 .btn { @apply px-3 py-2 rounded-[calc(var(--radius)-8px)] text-sm; }
 .btn-accent { background: var(--accent); color: var(--on-accent); }
 .label { @apply text-sm text-zinc-600 dark:text-zinc-300; }
