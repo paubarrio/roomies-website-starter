@@ -10,7 +10,7 @@ export const useDesign = () => {
 };
 
 export function DesignProvider({ children }: { children: React.ReactNode }){
-  const [design, setDesign] = useState({ compact:false, radius:16, accent:"#0a0a0a", onAccent:"#ffffff", setDesign: (_: any)=>{} } as any);
+  const [design, setDesign] = useState({ compact:false, radius:12, accent:"#e0865f", onAccent:"#ffffff", setDesign: (_: any)=>{} } as any);
   (design as any).setDesign = setDesign;
   return (
     <DesignContext.Provider value={design as any}>
@@ -32,7 +32,7 @@ export function Toggle({ checked, onChange, label }:{ checked:boolean; onChange:
   return (
     <label className="flex items-center gap-2 select-none cursor-pointer">
       <input type="checkbox" className="sr-only" checked={checked} onChange={e=>onChange(e.target.checked)} />
-      <span className={`inline-block w-10 h-6 rounded-full transition ${checked ? 'bg-emerald-500' : 'bg-zinc-300 dark:bg-zinc-700'}`}>
+      <span className={`inline-block w-10 h-6 rounded-full transition ${checked ? 'bg-[var(--accent)]' : 'bg-zinc-300 dark:bg-zinc-700'}`}>
         <span className={`block h-5 w-5 bg-white rounded-full shadow transform transition ${checked ? 'translate-x-5' : 'translate-x-0.5'} mt-0.5`} />
       </span>
       <span className="text-sm text-zinc-700 dark:text-zinc-300">{label}</span>
