@@ -52,14 +52,14 @@ function Calendars(){
   const [visible, setVisible] = React.useState(Object.fromEntries(ROOMMATES.map(r=>[r.id,true])) as Record<string,boolean>);
   const [duration, setDuration] = React.useState(60);
   const [participants, setParticipants] = React.useState(Object.fromEntries(ROOMMATES.map(r=>[r.id,true])) as Record<string,boolean>);
-  const dayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 8, 0);
-  const dayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 22, 0);
+  const dayStart = React.useMemo(() => new Date(today.getFullYear(), today.getMonth(), today.getDate(), 8, 0), []);
+  const dayEnd = React.useMemo(() => new Date(today.getFullYear(), today.getMonth(), today.getDate(), 22, 0), []);
   const filtered = React.useMemo(()=>events.filter(e=>visible[e.owner]), [events,visible]);
   const suggestions = React.useMemo(()=>{
     const selected = ROOMMATES.filter(r=>participants[r.id]).map(r=>r.id);
     if(selected.length<2) return [];
     return suggestCommonTimes({ events: filtered, people: selected, windowStart: dayStart, windowEnd: dayEnd, durationMin: Number(duration) });
-  }, [filtered, participants, duration]);
+  }, [filtered, participants, duration, dayStart, dayEnd]);
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-5 gap-4">
@@ -81,8 +81,14 @@ function Calendars(){
             );
           })}
           {filtered.map((ev,idx)=>{
-            const total=(22-8)*60; const startMin=(ev.start.getHours()*60+ev.start.getMinutes())-8*60;
-            const top=(startMin/total)*15*48; const height=((ev.end.getTime()-ev.start.getTime())/60000)/total*15*48;
+            const total=(22-8)*60;
+            const start=Math.max(ev.start.getTime(), dayStart.getTime());
+            const end=Math.min(ev.end.getTime(), dayEnd.getTime());
+            if(end <= dayStart.getTime() || start >= dayEnd.getTime()) return null;
+            const startMin=(start - dayStart.getTime())/60000;
+            const duration=(end - start)/60000;
+            const top=(startMin/total)*15*48;
+            const height=(duration/total)*15*48;
             const owner = ROOMMATES.find(r=>r.id===ev.owner);
             return (
               <div key={idx} className="absolute left-20 right-4" style={{ top, height }}>
