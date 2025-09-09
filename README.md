@@ -29,3 +29,4 @@ npm run build && npm start
 - Create API routes (`src/app/api/...`) for proposals, chores, expenses.
 - Add webhook subscribers for calendar updates.
 - Extend the grocery list with stores and price history.
+
