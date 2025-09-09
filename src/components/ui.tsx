@@ -10,7 +10,7 @@ export const useDesign = () => {
 };
 
 export function DesignProvider({ children }: { children: React.ReactNode }){
-  const [design, setDesign] = useState({ compact:false, radius:16, accent:"#0a0a0a", onAccent:"#ffffff", setDesign: (_: any)=>{} } as any);
+  const [design, setDesign] = useState({ compact:false, radius:12, accent:"#e0865f", onAccent:"#ffffff", setDesign: (_: any)=>{} } as any);
   (design as any).setDesign = setDesign;
   return (
     <DesignContext.Provider value={design as any}>
@@ -24,15 +24,23 @@ export function Card(props: React.HTMLAttributes<HTMLDivElement>){
   return <div className={`card p-4 ${className}`} {...rest} />;
 }
 
-export function Chip({ children }: { children: React.ReactNode }){
-  return <span className="px-2 py-0.5 rounded-full text-xs bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">{children}</span>;
+export function Chip(props: React.HTMLAttributes<HTMLSpanElement>){
+  const { className="", children, ...rest } = props;
+  return (
+    <span
+      className={`px-2 py-0.5 rounded-full text-xs bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 ${className}`}
+      {...rest}
+    >
+      {children}
+    </span>
+  );
 }
 
 export function Toggle({ checked, onChange, label }:{ checked:boolean; onChange:(v:boolean)=>void; label:string; }){
   return (
     <label className="flex items-center gap-2 select-none cursor-pointer">
       <input type="checkbox" className="sr-only" checked={checked} onChange={e=>onChange(e.target.checked)} />
-      <span className={`inline-block w-10 h-6 rounded-full transition ${checked ? 'bg-emerald-500' : 'bg-zinc-300 dark:bg-zinc-700'}`}>
+      <span className={`inline-block w-10 h-6 rounded-full transition ${checked ? 'bg-[var(--accent)]' : 'bg-zinc-300 dark:bg-zinc-700'}`}>
         <span className={`block h-5 w-5 bg-white rounded-full shadow transform transition ${checked ? 'translate-x-5' : 'translate-x-0.5'} mt-0.5`} />
       </span>
       <span className="text-sm text-zinc-700 dark:text-zinc-300">{label}</span>
