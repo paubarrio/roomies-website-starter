@@ -386,13 +386,15 @@ function CostsGroceries({ roommates }: { roommates: Roommate[] }){
 }
 
 function Profiles({ roommates, setRoommates }:{ roommates: Roommate[]; setRoommates: React.Dispatch<React.SetStateAction<Roommate[]>> }){
+  const [draft, setDraft] = React.useState<Roommate[]>(roommates);
+  React.useEffect(() => setDraft(roommates), [roommates]);
   const update = (id: string, data: Partial<Roommate>) =>
-    setRoommates(rs => rs.map(r => r.id===id ? { ...r, ...data } : r));
+    setDraft(rs => rs.map(r => r.id===id ? { ...r, ...data } : r));
   return (
     <Card>
       <h3 className="font-semibold mb-3">Roommate profiles</h3>
       <div className="space-y-2">
-        {roommates.map(r => (
+        {draft.map(r => (
           <div key={r.id} className="flex items-center gap-2">
             <input
               className="input flex-1"
@@ -408,6 +410,7 @@ function Profiles({ roommates, setRoommates }:{ roommates: Roommate[]; setRoomma
           </div>
         ))}
       </div>
+      <AccentButton className="mt-4" onClick={() => setRoommates(draft)}>Save</AccentButton>
     </Card>
   );
 }
