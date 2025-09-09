@@ -24,8 +24,16 @@ export function Card(props: React.HTMLAttributes<HTMLDivElement>){
   return <div className={`card p-4 ${className}`} {...rest} />;
 }
 
-export function Chip({ children }: { children: React.ReactNode }){
-  return <span className="px-2 py-0.5 rounded-full text-xs bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">{children}</span>;
+export function Chip(props: React.HTMLAttributes<HTMLSpanElement>){
+  const { className="", children, ...rest } = props;
+  return (
+    <span
+      className={`px-2 py-0.5 rounded-full text-xs bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 ${className}`}
+      {...rest}
+    >
+      {children}
+    </span>
+  );
 }
 
 export function Toggle({ checked, onChange, label }:{ checked:boolean; onChange:(v:boolean)=>void; label:string; }){
